@@ -101,7 +101,7 @@ def train_nuscenes_all():
     # config = Path(__file__).resolve().parent() / "configs/car.fhd.nu.config"
     config = _get_config(config)
     _nuscenes_modify_step(config, 50, 5, 8)
-    model_dir_root = Path("/home/yy/deeplearning/model_dirs/nuscene")
+    model_dir_root = Path("/home/zhenzhen/PycharmProjects/deecamp/second.pytorch/trained_models")
     date_str = datetime.datetime.now().strftime("%y%m%d_%H%M%S")
     train(
         config,
@@ -224,4 +224,4 @@ def resume_nuscenes_pp_all():
 if __name__ == "__main__":
     model_tool.rm_invalid_model_dir("/home/yy/deeplearning/model_dirs/nuscene")
     # train_nuscenes_lite_hrz()
-    resume_nuscenes_pp_all()
+    train_nuscenes_all()
