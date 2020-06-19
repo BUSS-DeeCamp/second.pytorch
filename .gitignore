@@ -108,5 +108,6 @@ venv.bak/
 .vscode
 
 pre_trained_models/
+second/pretrained_models_v1.5/
 trained_models/
 .idea
