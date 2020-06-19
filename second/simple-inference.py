@@ -15,7 +15,7 @@ from second.utils import config_tool
 
 # ## Read Config file
 
-config_path = "/home/zhenzhen/PycharmProjects/deecamp/second.pytorch/second/configs/car.lite.config"
+config_path = "/home/zhenzhen/PycharmProjects/deecamp/second.pytorch/second/configs/car.fhd.config"
 config = pipeline_pb2.TrainEvalPipelineConfig()
 with open(config_path, "r") as f:
     proto_str = f.read()
@@ -28,7 +28,7 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 # ## Build Network, Target Assigner and Voxel Generator
 
-ckpt_path = "/home/zhenzhen/PycharmProjects/deecamp/second.pytorch/second/pretrained_models_v1.5/car_lite/voxelnet-15500.tckpt"
+ckpt_path = "/home/zhenzhen/PycharmProjects/deecamp/second.pytorch/second/pretrained_models_v1.5/car_onestage/voxelnet-27855.tckpt"
 net = build_network(model_cfg).to(device).eval()
 net.load_state_dict(torch.load(ckpt_path))
 target_assigner = net.target_assigner
