@@ -149,3 +149,35 @@ eval_input_reader: {
     ```python
     python inference_from_bin_file.py /path/to/cloud.bin
     ```
+  
+### KITTI web viewer
+ 
+1. Run the backend
+    ```python
+    python ./kittiviewer/backend/main.py main --port=16666
+    ```
+2. Run the frontend
+
+    ```python
+    cd ./kittiviewer/frontend && python -m http.server
+    ```
+
+    Then open the frontend url (http://127.0.0.1:8000/) in your browser.
+
+3. Load the dataset for testing
+
+    * `rootPath`: /path/to/KITTI
+    * `infoPath`: /path/to/KITTI/kitti_infos_test.pkl
+
+    Then click `load`.
+
+4. Load the config and checkpoint
+
+    * `checkpointPath`: /path/to/pretrained_models_v1.5/car_lite/voxelnet-15500.tckpt
+    * `configPath`: /path/to/configs/car.lite.config
+
+    Then click `buildNet`.
+
+5. Inference
+
+    Click the left and right arrows in the bottom-middle region of the viewer to select the sample you want to test. Then click `inference` to see the results.
