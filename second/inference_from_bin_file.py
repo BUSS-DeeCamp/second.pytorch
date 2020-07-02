@@ -61,6 +61,11 @@ class Second3DDector(object):
         logging.info('anchors generated.')
 
     @staticmethod
+    def load_pc_from_deecamp_file(pc_f):
+        logging.info('loading pc from: {}'.format(pc_f))
+        return np.fromfile(pc_f, dtype=np.float32, count=-1).reshape([-1, 4])
+
+    @staticmethod
     def load_pc_from_nuscenes_file(pc_f):
         logging.info('loading pc from: {}'.format(pc_f))
         return np.fromfile(pc_f, dtype=np.float32, count=-1).reshape([-1, 5])
@@ -106,6 +111,51 @@ class Second3DDector(object):
                     cv2.putText(img, '{0} {1:.1f}'.format(self.label_map[labels[i]], score),
                                 (int(pts2d[2][0]), int(pts2d[2][1])), cv2.FONT_HERSHEY_COMPLEX, .5, (255, 255, 255))
         return img
+
+
+    def predict_on_deecamp_local_file(self, v_p):
+        tic = time.time()
+        points = self.load_pc_from_deecamp_file(v_p)[:, :4]
+        # need to normalize the intensity value for nuScenes dataset
+        points[:, 3] /= 255
+        print('points shape: ', points.shape)
+        example = self.load_an_in_example_from_points(points)
+        pred = self.net(example)[0]
+        box3d = pred['box3d_lidar'].detach().cpu().numpy()
+        scores = pred["scores"].detach().cpu().numpy()
+        labels = pred["label_preds"].detach().cpu().numpy()
+
+        idx = np.where(scores > 0.11)[0]
+        box3d = box3d[idx, :]
+        labels = np.take(labels, idx)
+        scores = np.take(scores, idx)
+
+        # show points first
+        geometries = []
+        pcs = np.array(points[:, :3])
+        pcobj = o3d.geometry.PointCloud()
+        pcobj.points = o3d.utility.Vector3dVector(pcs)
+        geometries.append(pcobj)
+        # try getting 3d boxes coordinates
+        for p in box3d:
+            xyz = np.array([p[: 3]])
+            hwl = np.array([p[3: 6]])
+            r_y = [p[6]]
+            pts3d = compute_3d_box_lidar_coords(xyz, hwl, angles=r_y, origin=(0.5, 0.5, 0.5), axis=2)[0]
+            points = [[0, 0, 0], [1, 0, 0], [0, 1, 0], [1, 1, 0],
+                      [0, 0, 1], [1, 0, 1], [0, 1, 1], [1, 1, 1]]
+            print(pts3d, points)
+            lines = [[0, 1], [1, 2], [2, 3], [3, 0],
+                     [4, 5], [5, 6], [6, 7], [7, 4],
+                     [0, 4], [1, 5], [2, 6], [3, 7]]
+            colors = [[1, 0, 1] for i in range(len(lines))]
+            line_set = o3d.geometry.LineSet()
+            line_set.points = o3d.utility.Vector3dVector(pts3d)
+            line_set.lines = o3d.utility.Vector2iVector(lines)
+            line_set.colors = o3d.utility.Vector3dVector(colors)
+            geometries.append(line_set)
+        draw_pcs_open3d(geometries)
+
 
     def predict_on_nuscenes_local_file(self, v_p):
         tic = time.time()
@@ -201,4 +251,5 @@ if __name__ == "__main__":
         model_p = './second/pretrained_models_v1.5/car_lite/voxelnet-15500.tckpt'
         detector = Second3DDector(config_p, model_p)
         # detector.predict_on_kitti_local_file(sys.argv[1])
-        detector.predict_on_nuscenes_local_file(sys.argv[1])
+        # detector.predict_on_nuscenes_local_file(sys.argv[1])
+        detector.predict_on_deecamp_local_file(sys.argv[1])
